@@ -1,4 +1,3 @@
-# A GitHub Actions workflow for a Node.js app that installs dependencies, runs tests, and deploys the app
 # This is the name of your GitHub Actions workflow.
 name: Node.js CI/CD
 
@@ -19,12 +18,12 @@ jobs:
     steps:
       # Step 1: Checks out your repository code into the runner's workspace.
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Step 2: Sets up a Node.js environment.
       # This action automatically handles installing the correct version of Node.js.
       - name: Set up Node.js environment
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '18' # You can change this to your desired Node.js version
 
@@ -44,10 +43,11 @@ jobs:
       # This step is crucial for passing the build output from this job to the
       # next one (the deploy job). It packages the necessary files for deployment.
       - name: Archive build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifact
           path: . # Path to the files you want to save. You may need to change this.
+          retention-days: 1 # Optional: How long to keep the artifact before it's deleted.
 
   deploy:
     # This job will only run if the `build-and-test` job has completed successfully.
@@ -57,7 +57,7 @@ jobs:
     steps:
       # Step 1: Downloads the build artifacts from the previous job.
       - name: Download build artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: .

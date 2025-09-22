@@ -27,19 +27,32 @@ jobs:
         with:
           node-version: '18' # You can change this to your desired Node.js version
 
-      # Step 3: Installs the project dependencies.
-      # `npm ci` is used here instead of `npm install` for CI/CD pipelines.
-      # It installs a clean version of dependencies from `package-lock.json`,
-      # ensuring consistent builds.
+      # Step 3: Caches the Node.js dependencies for faster builds.
+      # This step checks for a cache based on the contents of package-lock.json.
+      # If a cache exists, it restores the `node_modules` directory, skipping
+      # the `npm ci` install.
+      - name: Cache Node.js modules
+        id: cache-npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Step 4: Installs the project dependencies only if the cache is a miss.
+      # The `if: steps.cache-npm.outputs.cache-hit != 'true'` condition
+      # prevents this step from running if the cache was successfully restored.
       - name: Install dependencies
+        if: steps.cache-npm.outputs.cache-hit != 'true'
         run: npm ci
 
-      # Step 4: Runs the automated tests.
+      # Step 5: Runs the automated tests.
       # If any test fails, this step will fail, causing the entire job to fail.
       - name: Run tests
         run: npm test
 
-      # Step 5: Archives the build artifacts.
+      # Step 6: Archives the build artifacts.
       # This step is crucial for passing the build output from this job to the
       # next one (the deploy job). It packages the necessary files for deployment.
       - name: Archive build artifacts
